@@ -1,4 +1,4 @@
-# An IP scanner in Rust 
+# An IP host-up scanner
 
 checks if host is up on all address spaces on the internet.
 saves live hosts in sqlite database. 
