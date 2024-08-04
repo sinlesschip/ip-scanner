@@ -1,0 +1,7 @@
+/target
+*.db
+*.db-journal
+Testing stiff.ipynb
+/__pycache__
+.ipynb_checkpoints
+Cargo.lock

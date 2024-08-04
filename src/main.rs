@@ -1,55 +1,31 @@
 #![feature(ip_bits)]
+mod argparser;
 use colored::Colorize;
 use sqlite::Connection;
-use std::collections::HashMap;
-use std::{str, net::Ipv4Addr, process::Command, thread, env};
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
+use std::{net::Ipv4Addr, process::Command, str, thread};
+use argparser::{ArgParser, Type, ArgType};
 
 fn main() {
+    let mut arg_parser = ArgParser::new();
+    arg_parser.add_argument("threads", ArgType::Int);
+    arg_parser.parse_args();
+    let mut threads = 1;
 
-    let args: Vec<String> = env::args().collect();
-    let arg_parser = ArgParser::new(args);
-    let threads = match arg_parser.get("threads") {
-        Some(arg) => arg[0].parse::<u32>().unwrap(),
-        None => 5, 
-    };
+    if let Some(v) = arg_parser.get("threads") {
+        match v {
+            argparser::Type::Int(s) => { threads = s[0]},
+            _ => {}
+    } };
+    
+    println!("{}", threads);
 
     let db = DB::init("valid_ips.db");
     let mut app = App::new(&db, threads);
     app.run();
-
 }
 
-struct ArgParser<> {
-    args: HashMap<String, Vec<String>>
- }
-
-impl ArgParser {
-    fn new(mut args: Vec<String>) -> ArgParser {
-        let mut args_mapped = HashMap::new();
-        let mut popped: Vec<String> = vec![];
-        while args.len() > 0 {
-            let mut arg = args.pop().unwrap();
-            if arg.starts_with("--") { 
-                let arg = arg.replace("--", "");
-                args_mapped.insert(arg, popped.to_owned());
-                popped = vec![];
-            } else {
-                popped.push(arg);
-            }
-        }
-
-        ArgParser { args: args_mapped }
-    }    
-    fn get(&self, arg: &str) -> Option<Vec<String>> {
-        match self.args.get(arg) {
-            Some(v) => Some(v.clone()),
-            None => None
-    
-    } 
-}
-}
 
 struct App<'a> {
     last_checked: u32,
@@ -94,17 +70,14 @@ impl App<'_> {
         ) = mpsc::channel();
         while self.last_checked < self.max_ip_addr {
             for _ in 0..self.num_of_threads {
-
                 let ip_checker = IPChecker::new();
-                
+
                 match ip_checker.check_block(self.reserved_ip_addr, &self.last_checked) {
                     Some(block) => {
                         self.last_checked = block.1 + 1;
                     }
                     None => (),
                 }
-
-                
 
                 let ip_address = Ipv4Addr::from(self.last_checked);
 
@@ -172,7 +145,7 @@ impl IPChecker {
         });
         println!("{}", log);
     }
-    
+
     fn check_block(&self, blocks: [(u32, u32); 16], ip: &u32) -> Option<(u32, u32)> {
         for i in blocks {
             if ip >= &i.0 {
@@ -220,7 +193,11 @@ impl DB {
 
     fn put_ip(&self, conn: &Connection, ip: Ipv4Addr) {
         //put ip in checked ips
-        conn.execute(format!("INSERT OR IGNORE INTO {} VALUES ('{}')", "checked", ip.to_bits().to_string()))
-            .unwrap();
+        conn.execute(format!(
+            "INSERT OR IGNORE INTO {} VALUES ('{}')",
+            "checked",
+            ip.to_bits().to_string()
+        ))
+        .unwrap();
     }
 }
