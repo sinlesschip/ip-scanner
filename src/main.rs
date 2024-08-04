@@ -5,7 +5,7 @@ use sqlite::Connection;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::{net::Ipv4Addr, process::Command, str, thread};
-use argparser::{ArgParser, Type, ArgType};
+use argparser::{ArgParser, ArgType};
 
 fn main() {
     let mut arg_parser = ArgParser::new();

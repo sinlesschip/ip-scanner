@@ -36,6 +36,9 @@
             let mut args_mapped = HashMap::new();
             let mut popped: Vec<String> = vec![];
             while args.len() > 0 {
+                // need to re write this, maybe match on the each arg, if none are found
+                // to be in our args list then we know theres an invalid argument
+                // so we must find it, somehow...
                 let mut argument = args.pop().unwrap();
                 if argument.starts_with("--") {
                     let argument = argument.replace("--", "");
