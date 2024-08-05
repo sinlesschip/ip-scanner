@@ -3,8 +3,6 @@
 checks if host is up on all address spaces on the internet.
 saves live hosts in sqlite database. 
 
-can also run vulinerability scans on each address but this feature isnt fully complete. 
-
 run with cargo +nighly: 
 
 `cargo +nighly run`
